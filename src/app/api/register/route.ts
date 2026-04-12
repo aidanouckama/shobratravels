@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
     const {
       fullName,
       email,
-      phone,
+      cellPhone,
+      homePhone,
       address,
       tripId,
       passportNumber,
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
       paymentMethod,
     } = body;
 
-    if (!fullName || !email || !phone || !address || !tripId || !passportNumber) {
+    if (!fullName || !email || !cellPhone || !address || !tripId || !passportNumber) {
       return NextResponse.json(
         { error: "All required fields must be filled" },
         { status: 400 }
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Trip not found" }, { status: 404 });
     }
 
+    const phone = cellPhone + (homePhone ? ` / ${homePhone}` : "");
     const client = await prisma.client.upsert({
       where: { email },
       update: { fullName, phone, address },
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest) {
     notifyNewRegistration({
       clientName: fullName,
       clientEmail: email,
-      clientPhone: phone,
+      clientPhone: cellPhone,
       tripTitle: trip.title,
       departureDate: trip.departureDate,
       paymentMethod,

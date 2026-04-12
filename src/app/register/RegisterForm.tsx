@@ -32,10 +32,13 @@ export default function RegisterForm() {
   const [registrationId, setRegistrationId] = useState("");
   const [error, setError] = useState("");
 
+  const [authorized, setAuthorized] = useState(false);
+
   const [form, setForm] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    homePhone: "",
+    cellPhone: "",
     address: "",
     tripId: "",
     passportNumber: "",
@@ -90,7 +93,7 @@ export default function RegisterForm() {
 
   const canAdvance = () => {
     if (step === 0)
-      return form.fullName && form.email && form.phone && form.address;
+      return form.fullName && form.email && form.cellPhone && form.address;
     if (step === 1) return form.tripId;
     if (step === 2)
       return (
@@ -293,7 +296,7 @@ export default function RegisterForm() {
                     className="w-full border-b-2 border-neutral-200 px-0 py-3 bg-transparent focus:outline-none focus:border-accent transition-colors text-lg"
                   />
                 </div>
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-2">
                     Email
                   </label>
@@ -308,14 +311,26 @@ export default function RegisterForm() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-2">
-                    Phone
+                    Cell Phone
                   </label>
                   <input
                     type="tel"
                     required
-                    value={form.phone}
-                    onChange={(e) => update("phone", e.target.value)}
+                    value={form.cellPhone}
+                    onChange={(e) => update("cellPhone", e.target.value)}
                     placeholder="(555) 123-4567"
+                    className="w-full border-b-2 border-neutral-200 px-0 py-3 bg-transparent focus:outline-none focus:border-accent transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-2">
+                    Home Phone <span className="text-neutral-400 normal-case tracking-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={form.homePhone}
+                    onChange={(e) => update("homePhone", e.target.value)}
+                    placeholder="(555) 987-6543"
                     className="w-full border-b-2 border-neutral-200 px-0 py-3 bg-transparent focus:outline-none focus:border-accent transition-colors"
                   />
                 </div>
@@ -553,6 +568,22 @@ export default function RegisterForm() {
                   </div>
                 </button>
               </div>
+
+              {/* Authorization */}
+              <label className="flex items-start gap-3 mt-8 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={authorized}
+                  onChange={(e) => setAuthorized(e.target.checked)}
+                  className="mt-1 shrink-0"
+                />
+                <span className="text-xs text-neutral-500 leading-relaxed">
+                  I authorize Shobra Travel Agency, LLC to charge the selected
+                  payment method for the deposit amount shown above. I understand
+                  my registration will not be complete until the deposit payment
+                  is received. <span className="text-neutral-400">ARC-31-76913-5</span>
+                </span>
+              </label>
             </div>
           )}
         </div>
@@ -593,8 +624,8 @@ export default function RegisterForm() {
             <button
               type="button"
               onClick={handleRegistrationSubmit}
-              disabled={submitting}
-              className="flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3 uppercase tracking-wider text-sm transition-colors disabled:opacity-50"
+              disabled={submitting || !authorized}
+              className="flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3 uppercase tracking-wider text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {submitting ? "Processing..." : "Continue to Payment"}
               {!submitting && <ChevronRight size={16} />}
