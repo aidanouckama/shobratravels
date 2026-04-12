@@ -29,7 +29,6 @@ export default function RegisterForm() {
   >([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [registrationId, setRegistrationId] = useState("");
   const [error, setError] = useState("");
 
   const [authorized, setAuthorized] = useState(false);
@@ -64,23 +63,21 @@ export default function RegisterForm() {
       });
   }, [searchParams]);
 
-  // Submit registration first, then show payment
-  const handleRegistrationSubmit = async () => {
+  // Called by SquarePayment after tokenizing — submits everything at once
+  const handleFullSubmit = async (sourceId: string) => {
     setSubmitting(true);
     setError("");
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, sourceId }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Registration failed");
       }
-      const data = await res.json();
-      setRegistrationId(data.registrationId);
-      setStep(4); // move to payment step
+      setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -108,6 +105,7 @@ export default function RegisterForm() {
 
   const selectedTrip = trips.find((t) => t.id === form.tripId);
   const isCC = form.paymentMethod === "credit_card";
+  const totalCents = isCC ? 124680 : 120000; // $1,246.80 or $1,200.00
   const displayTotal = isCC ? "$1,246.80" : "$1,200.00";
   const displayFee = isCC ? "3.9% processing fee" : "No processing fee";
 
@@ -152,76 +150,7 @@ export default function RegisterForm() {
     );
   }
 
-  // Payment step (after registration is created)
-  if (step === 4) {
-    return (
-      <section className="py-12 md:py-20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Step Indicator — all green */}
-          <div className="flex items-center justify-between mb-14">
-            {STEPS.map((s, i) => (
-              <div key={s.label} className="flex items-center flex-1 last:flex-none">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 flex items-center justify-center text-sm font-bold bg-accent text-white">
-                    <Check size={16} strokeWidth={3} />
-                  </div>
-                  <span className="text-xs uppercase tracking-widest hidden sm:block text-neutral-900 font-semibold">
-                    {s.label}
-                  </span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div className="flex-1 h-px mx-4 bg-accent" />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="max-w-lg mx-auto">
-            <h2 className="text-2xl font-bold uppercase tracking-wider mb-2">
-              Secure Payment
-            </h2>
-            <p className="text-neutral-500 text-sm mb-8">
-              {isCC
-                ? "Enter your card details to pay your $1,200 deposit + 3.9% processing fee."
-                : "Authorize a bank transfer for your $1,200 deposit — no processing fee."}
-            </p>
-
-            {/* Order summary */}
-            <div className="bg-green-50 border border-green-200 p-5 mb-6 text-sm">
-              <div className="flex justify-between mb-2">
-                <span className="text-neutral-500">Trip deposit</span>
-                <span>$1,200.00</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-neutral-500">Processing fee</span>
-                <span>{isCC ? "$46.80" : "$0.00"}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-green-200 font-bold">
-                <span>Total</span>
-                <span>{displayTotal}</span>
-              </div>
-            </div>
-
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-3 text-sm">
-                {error}
-              </div>
-            )}
-
-            <SquarePayment
-              method={form.paymentMethod as "credit_card" | "ach"}
-              registrationId={registrationId}
-              holderName={form.fullName}
-              total={displayTotal}
-              fee={displayFee}
-              onSuccess={() => setSubmitted(true)}
-              onError={(msg) => setError(msg)}
-            />
-          </div>
-        </div>
-      </section>
-    );
-  }
+  // Step 4 is now handled inline below (payment method + embedded checkout combined)
 
   return (
     <section className="py-12 md:py-20">
@@ -569,8 +498,24 @@ export default function RegisterForm() {
                 </button>
               </div>
 
+              {/* Order summary */}
+              <div className="bg-green-50 border border-green-200 p-5 mt-8 text-sm">
+                <div className="flex justify-between mb-2">
+                  <span className="text-neutral-500">Trip deposit</span>
+                  <span>$1,200.00</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-neutral-500">Processing fee</span>
+                  <span>{isCC ? "$46.80" : "$0.00"}</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-green-200 font-bold">
+                  <span>Total</span>
+                  <span>{displayTotal}</span>
+                </div>
+              </div>
+
               {/* Authorization */}
-              <label className="flex items-start gap-3 mt-8 cursor-pointer">
+              <label className="flex items-start gap-3 mt-6 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={authorized}
@@ -584,6 +529,21 @@ export default function RegisterForm() {
                   is received. <span className="text-neutral-400">ARC-31-76913-5</span>
                 </span>
               </label>
+
+              {/* Embedded Square Payment */}
+              {authorized && (
+                <SquarePayment
+                  method={form.paymentMethod as "credit_card" | "ach"}
+                  transactionId={form.tripId}
+                  holderName={form.fullName}
+                  totalCents={totalCents}
+                  total={displayTotal}
+                  fee={displayFee}
+                  processing={submitting}
+                  onTokenized={handleFullSubmit}
+                  onError={(msg) => setError(msg)}
+                />
+              )}
             </div>
           )}
         </div>
@@ -595,22 +555,22 @@ export default function RegisterForm() {
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-10 pt-8 border-t border-neutral-200">
-          <button
-            type="button"
-            onClick={() => setStep((s) => s - 1)}
-            className={`flex items-center gap-2 text-sm uppercase tracking-wider font-semibold transition-colors ${
-              step === 0
-                ? "invisible"
-                : "text-neutral-500 hover:text-neutral-800"
-            }`}
-          >
-            <ChevronLeft size={16} />
-            Back
-          </button>
+        {/* Navigation — only show on steps 0-2 */}
+        {step < 3 && (
+          <div className="flex items-center justify-between mt-10 pt-8 border-t border-neutral-200">
+            <button
+              type="button"
+              onClick={() => setStep((s) => s - 1)}
+              className={`flex items-center gap-2 text-sm uppercase tracking-wider font-semibold transition-colors ${
+                step === 0
+                  ? "invisible"
+                  : "text-neutral-500 hover:text-neutral-800"
+              }`}
+            >
+              <ChevronLeft size={16} />
+              Back
+            </button>
 
-          {step < 3 ? (
             <button
               type="button"
               onClick={() => setStep((s) => s + 1)}
@@ -620,18 +580,21 @@ export default function RegisterForm() {
               Continue
               <ChevronRight size={16} />
             </button>
-          ) : (
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="mt-6">
             <button
               type="button"
-              onClick={handleRegistrationSubmit}
-              disabled={submitting || !authorized}
-              className="flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-8 py-3 uppercase tracking-wider text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={() => { setStep(2); setAuthorized(false); }}
+              className="flex items-center gap-2 text-sm uppercase tracking-wider font-semibold text-neutral-500 hover:text-neutral-800 transition-colors"
             >
-              {submitting ? "Processing..." : "Continue to Payment"}
-              {!submitting && <ChevronRight size={16} />}
+              <ChevronLeft size={16} />
+              Back
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );

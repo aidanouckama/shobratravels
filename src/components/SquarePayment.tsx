@@ -16,39 +16,55 @@ declare global {
 
 interface SquarePayments {
   card: () => Promise<SquareCard>;
-  ach: () => Promise<SquareACH>;
+  ach: (options: {
+    redirectURI: string;
+    transactionId: string;
+  }) => Promise<SquareACH>;
 }
 
 interface SquareCard {
   attach: (selector: string) => Promise<void>;
-  tokenize: () => Promise<{ status: string; token: string; errors?: { message: string }[] }>;
+  tokenize: () => Promise<TokenResult>;
   destroy: () => void;
 }
 
 interface SquareACH {
   tokenize: (options: {
     accountHolderName: string;
-  }) => Promise<{ status: string; token: string; errors?: { message: string }[] }>;
+    intent: string;
+    amount: string;
+    currency: string;
+  }) => Promise<TokenResult>;
   destroy: () => void;
+}
+
+interface TokenResult {
+  status: string;
+  token: string;
+  errors?: { message: string }[];
 }
 
 type Props = {
   method: "credit_card" | "ach";
-  registrationId: string;
+  transactionId: string;
   holderName: string;
+  totalCents: number;
   total: string;
   fee: string;
-  onSuccess: () => void;
+  processing?: boolean;
+  onTokenized: (sourceId: string) => void;
   onError: (msg: string) => void;
 };
 
 export default function SquarePayment({
   method,
-  registrationId,
+  transactionId,
   holderName,
+  totalCents,
   total,
   fee,
-  onSuccess,
+  processing: externalProcessing,
+  onTokenized,
   onError,
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +95,10 @@ export default function SquarePayment({
           await card.attach("#square-card-container");
           cardRef.current = card;
         } else {
-          const ach = await payments.ach();
+          const ach = await payments.ach({
+            redirectURI: window.location.href,
+            transactionId,
+          });
           achRef.current = ach;
         }
         setReady(true);
@@ -94,18 +113,22 @@ export default function SquarePayment({
       cardRef.current?.destroy();
       achRef.current?.destroy();
     };
-  }, [method, onError]);
+  }, [method, transactionId, onError]);
 
   const handlePay = useCallback(async () => {
     setProcessing(true);
     try {
-      let tokenResult;
+      let tokenResult: TokenResult | undefined;
 
       if (method === "credit_card" && cardRef.current) {
         tokenResult = await cardRef.current.tokenize();
       } else if (method === "ach" && achRef.current) {
+        const amountDollars = (totalCents / 100).toFixed(2);
         tokenResult = await achRef.current.tokenize({
           accountHolderName: holderName,
+          intent: "CHARGE",
+          amount: amountDollars,
+          currency: "USD",
         });
       }
 
@@ -117,27 +140,12 @@ export default function SquarePayment({
         return;
       }
 
-      const res = await fetch("/api/pay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sourceId: tokenResult.token,
-          registrationId,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Payment failed");
-      }
-
-      onSuccess();
+      onTokenized(tokenResult.token);
     } catch (err) {
       onError(err instanceof Error ? err.message : "Payment failed");
-    } finally {
       setProcessing(false);
     }
-  }, [method, holderName, registrationId, onSuccess, onError]);
+  }, [method, holderName, totalCents, onTokenized, onError]);
 
   return (
     <div className="mt-6">
@@ -167,10 +175,10 @@ export default function SquarePayment({
       <button
         type="button"
         onClick={handlePay}
-        disabled={!ready || processing}
+        disabled={!ready || processing || externalProcessing}
         className="w-full bg-accent hover:bg-accent-dark text-white font-semibold py-4 uppercase tracking-wider text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {processing ? (
+        {processing || externalProcessing ? (
           <>
             <Loader2 size={16} className="animate-spin" />
             Processing...
@@ -190,7 +198,7 @@ export default function SquarePayment({
 
       <p className="text-center text-neutral-400 text-xs mt-3 flex items-center justify-center gap-1">
         <Lock size={10} />
-        Secured by Square &middot; {fee} processing fee
+        Secured by Square &middot; {fee}
       </p>
     </div>
   );

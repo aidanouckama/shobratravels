@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { notifyNewRegistration } from "@/lib/email";
+import { processPayment, calculateTotal } from "@/lib/square";
+import { notifyNewRegistration, notifyPaymentReceived } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,11 +20,19 @@ export async function POST(req: NextRequest) {
       passportExpiry,
       passportIssuedBy,
       paymentMethod,
+      sourceId,
     } = body;
 
     if (!fullName || !email || !cellPhone || !address || !tripId || !passportNumber) {
       return NextResponse.json(
         { error: "All required fields must be filled" },
+        { status: 400 }
+      );
+    }
+
+    if (!sourceId) {
+      return NextResponse.json(
+        { error: "Payment information is required" },
         { status: 400 }
       );
     }
@@ -40,6 +49,21 @@ export async function POST(req: NextRequest) {
       create: { fullName, email, phone, address },
     });
 
+    const existing = await prisma.registration.findUnique({
+      where: { clientId_tripId: { clientId: client.id, tripId } },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: "You are already registered for this trip." },
+        { status: 409 }
+      );
+    }
+
+    // Process payment FIRST — if this fails, no registration is created
+    const { deposit, fee, total } = calculateTotal(paymentMethod);
+    const squarePayment = await processPayment(sourceId, paymentMethod, email);
+
+    // Payment succeeded — now create registration + payment record
     const registration = await prisma.registration.create({
       data: {
         clientId: client.id,
@@ -50,27 +74,22 @@ export async function POST(req: NextRequest) {
         passportExpiry: new Date(passportExpiry),
         passportIssuedBy,
         paymentMethod,
+        status: "DEPOSIT_PAID",
       },
     });
-
-    const depositAmount = 1200;
-    let processingFee = 0;
-    if (paymentMethod === "credit_card") processingFee = depositAmount * 0.039;
-    if (paymentMethod === "ach") processingFee = depositAmount * 0.01;
 
     await prisma.payment.create({
       data: {
         clientId: client.id,
         registrationId: registration.id,
-        amount: depositAmount,
-        processingFee,
+        amount: deposit,
+        processingFee: fee,
         type: "DEPOSIT",
-        status: paymentMethod === "check" ? "PENDING" : "PENDING",
+        status: "COMPLETED",
         method: paymentMethod,
+        squarePaymentId: squarePayment?.id || null,
       },
     });
-
-    // TODO: Create Square payment link for credit_card/ach and email to client
 
     notifyNewRegistration({
       clientName: fullName,
@@ -81,6 +100,14 @@ export async function POST(req: NextRequest) {
       paymentMethod,
     }).catch(console.error);
 
+    notifyPaymentReceived({
+      clientName: fullName,
+      tripTitle: trip.title,
+      amount: total,
+      method: paymentMethod,
+      type: "DEPOSIT",
+    }).catch(console.error);
+
     return NextResponse.json({
       success: true,
       registrationId: registration.id,
@@ -88,7 +115,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Registration failed. Please try again." },
+      { error: "Payment failed. Please try again." },
       { status: 500 }
     );
   }
