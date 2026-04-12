@@ -1,16 +1,24 @@
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash("shobra2024", 10);
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
+  }
+
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   await prisma.adminUser.upsert({
-    where: { email: "admin@shobratravel.com" },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email: "admin@shobratravel.com",
+      email: adminEmail,
       passwordHash,
       name: "Shobra Admin",
     },
