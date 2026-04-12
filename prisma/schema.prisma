@@ -73,6 +73,7 @@ model Registration {
   passportIssued  DateTime
   passportExpiry  DateTime
   passportIssuedBy String
+  passportImage   String?
   paymentMethod   String             // "credit_card" | "ach"
   status          RegistrationStatus @default(PENDING)
   notes           String?

@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       passportIssued,
       passportExpiry,
       passportIssuedBy,
+      passportImage,
       paymentMethod,
       sourceId,
     } = body;
@@ -83,6 +84,7 @@ export async function POST(req: NextRequest) {
         passportIssued: new Date(passportIssued),
         passportExpiry: new Date(passportExpiry),
         passportIssuedBy,
+        passportImage: passportImage || null,
         paymentMethod,
         status: "DEPOSIT_PAID",
       },

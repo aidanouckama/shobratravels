@@ -13,6 +13,9 @@ import {
   Building2,
   AlertTriangle,
   Calendar,
+  Upload,
+  X,
+  Loader2,
 } from "lucide-react";
 import SquarePayment from "@/components/SquarePayment";
 
@@ -65,8 +68,10 @@ export default function RegisterForm() {
     passportIssued: "",
     passportExpiry: "",
     passportIssuedBy: "",
+    passportImage: "",
     paymentMethod: "ach",
   });
+  const [uploadingPassport, setUploadingPassport] = useState(false);
 
   useEffect(() => {
     fetch("/api/trips")
@@ -156,7 +161,8 @@ export default function RegisterForm() {
         form.passportCountry &&
         form.passportIssued &&
         form.passportExpiry &&
-        form.passportIssuedBy
+        form.passportIssuedBy &&
+        form.passportImage
       );
     return true;
   };
@@ -493,20 +499,13 @@ export default function RegisterForm() {
               {/* Selected summary */}
               {selectedTrips.length > 0 && !dateCollision && (
                 <div className="mt-6 bg-green-50 border border-green-200 p-4 text-sm">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-neutral-500">
+                  <div className="flex justify-between font-bold">
+                    <span>
                       {selectedTrips.length}{" "}
                       {selectedTrips.length === 1 ? "trip" : "trips"} selected
                     </span>
-                    <span className="text-neutral-500">
-                      Total trip cost: $
-                      {tripPrice.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between font-bold">
-                    <span>Deposit required</span>
                     <span>
-                      ${(selectedTrips.length * 1200).toLocaleString()}.00
+                      ${tripPrice.toLocaleString()} total
                     </span>
                   </div>
                 </div>
@@ -583,6 +582,85 @@ export default function RegisterForm() {
                     placeholder="e.g. US Department of State"
                     className="w-full border-b-2 border-neutral-200 px-0 py-3 bg-transparent focus:outline-none focus:border-accent transition-colors"
                   />
+                </div>
+
+                {/* Passport Photo Upload */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-3">
+                    Passport Photo
+                  </label>
+                  {form.passportImage ? (
+                    <div className="border-2 border-neutral-200 p-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={form.passportImage}
+                          alt="Passport"
+                          className="w-16 h-16 object-cover"
+                        />
+                        <p className="text-xs text-accent font-medium">
+                          Uploaded
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => update("passportImage", "")}
+                        className="p-1 text-neutral-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="border-2 border-dashed border-neutral-300 hover:border-accent p-6 text-center cursor-pointer transition-colors block">
+                      {uploadingPassport ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2
+                            size={24}
+                            className="animate-spin text-accent"
+                          />
+                          <p className="text-sm text-neutral-500">
+                            Uploading...
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <Upload
+                            size={20}
+                            className="text-neutral-400"
+                          />
+                          <p className="text-sm text-neutral-500">
+                            Upload a photo of your passport
+                          </p>
+                          <p className="text-xs text-neutral-400">
+                            JPEG, PNG, or WebP
+                          </p>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingPassport(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            const res = await fetch("/api/upload", {
+                              method: "POST",
+                              body: formData,
+                            });
+                            if (res.ok) {
+                              const { url } = await res.json();
+                              update("passportImage", url);
+                            }
+                          } finally {
+                            setUploadingPassport(false);
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
             </div>
@@ -683,27 +761,39 @@ export default function RegisterForm() {
                     (d) => d.id === sel.tripDateId
                   );
                   return (
-                    <div
-                      key={sel.tripId}
-                      className="flex justify-between mb-2"
-                    >
-                      <span className="text-neutral-500 truncate mr-4">
-                        {trip?.title}
-                        {date && (
-                          <span className="text-neutral-400">
-                            {" "}
-                            &middot;{" "}
-                            {new Date(date.departureDate).toLocaleDateString(
-                              "en-US",
-                              { month: "short", day: "numeric" }
-                            )}
-                          </span>
-                        )}
-                      </span>
-                      <span className="shrink-0">$1,200.00</span>
+                    <div key={sel.tripId} className="mb-3">
+                      <div className="flex justify-between">
+                        <span className="font-medium truncate mr-4">
+                          {trip?.title}
+                        </span>
+                        <span className="shrink-0">
+                          ${trip?.pricePerPerson.toLocaleString()}
+                        </span>
+                      </div>
+                      {date && (
+                        <p className="text-neutral-400 text-xs mt-0.5">
+                          {new Date(date.departureDate).toLocaleDateString(
+                            "en-US",
+                            { month: "long", day: "numeric" }
+                          )}{" "}
+                          –{" "}
+                          {new Date(date.returnDate).toLocaleDateString(
+                            "en-US",
+                            { month: "long", day: "numeric", year: "numeric" }
+                          )}
+                        </p>
+                      )}
                     </div>
                   );
                 })}
+                <div className="flex justify-between pt-3 border-t border-green-200 mb-2">
+                  <span className="text-neutral-500">
+                    Deposit ({selectedTrips.length}{" "}
+                    {selectedTrips.length === 1 ? "trip" : "trips"} &times;
+                    $1,200)
+                  </span>
+                  <span>${totalDeposit.toLocaleString()}.00</span>
+                </div>
                 {isCC && (
                   <div className="flex justify-between mb-2">
                     <span className="text-neutral-500">
@@ -713,7 +803,7 @@ export default function RegisterForm() {
                   </div>
                 )}
                 <div className="flex justify-between pt-2 border-t border-green-200 font-bold">
-                  <span>Total</span>
+                  <span>Total due today</span>
                   <span>{displayTotal}</span>
                 </div>
               </div>
