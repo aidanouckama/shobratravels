@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import FileUpload from "@/components/FileUpload";
 
 type TripData = {
   id?: string;
@@ -238,28 +239,18 @@ export default function TripForm({ trip }: { trip?: TripData }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Hero Image URL
-          </label>
-          <input
-            type="url"
-            value={form.heroImage}
-            onChange={(e) => update("heroImage", e.target.value)}
-            className="w-full border border-neutral-300 px-4 py-2.5 focus:outline-none focus:border-accent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Itinerary PDF URL
-          </label>
-          <input
-            type="url"
-            value={form.pdfUrl}
-            onChange={(e) => update("pdfUrl", e.target.value)}
-            className="w-full border border-neutral-300 px-4 py-2.5 focus:outline-none focus:border-accent"
-          />
-        </div>
+        <FileUpload
+          label="Hero Image"
+          accept="image"
+          value={form.heroImage}
+          onChange={(url) => update("heroImage", url)}
+        />
+        <FileUpload
+          label="Itinerary PDF"
+          accept="pdf"
+          value={form.pdfUrl}
+          onChange={(url) => update("pdfUrl", url)}
+        />
       </div>
 
       <div className="flex gap-6">

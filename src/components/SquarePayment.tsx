@@ -3,46 +3,18 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Loader2, Lock } from "lucide-react";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   interface Window {
     Square: {
       payments: (
         appId: string,
         locationId: string
-      ) => Promise<SquarePayments>;
+      ) => Promise<any>;
     };
   }
 }
-
-interface SquarePayments {
-  card: () => Promise<SquareCard>;
-  ach: (options: {
-    redirectURI: string;
-    transactionId: string;
-  }) => Promise<SquareACH>;
-}
-
-interface SquareCard {
-  attach: (selector: string) => Promise<void>;
-  tokenize: () => Promise<TokenResult>;
-  destroy: () => void;
-}
-
-interface SquareACH {
-  tokenize: (options: {
-    accountHolderName: string;
-    intent: string;
-    amount: string;
-    currency: string;
-  }) => Promise<TokenResult>;
-  destroy: () => void;
-}
-
-interface TokenResult {
-  status: string;
-  token: string;
-  errors?: { message: string }[];
-}
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 type Props = {
   method: "credit_card" | "ach";
@@ -68,11 +40,26 @@ export default function SquarePayment({
   onError,
 }: Props) {
   const cardContainerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<SquareCard | null>(null);
-  const achRef = useRef<SquareACH | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cardRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const achRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [processing, setProcessing] = useState(false);
   const initializedRef = useRef(false);
+  const onTokenizedRef = useRef(onTokenized);
+  const onErrorRef = useRef(onError);
+
+  // Keep refs in sync so the event listener always calls the latest callback
+  useEffect(() => {
+    onTokenizedRef.current = onTokenized;
+    onErrorRef.current = onError;
+  }, [onTokenized, onError]);
+
+  // Reset internal processing when parent stops processing (e.g. server error)
+  useEffect(() => {
+    if (!externalProcessing) setProcessing(false);
+  }, [externalProcessing]);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -99,6 +86,19 @@ export default function SquarePayment({
             redirectURI: window.location.href,
             transactionId,
           });
+
+          // ACH uses an event-based flow (Plaid OAuth)
+          // Register the listener BEFORE calling tokenize
+          ach.addEventListener("ontokenization", (event: { detail: { tokenResult: { status: string; token: string; errors?: { message: string }[] } } }) => {
+            const tokenResult = event.detail.tokenResult;
+            if (tokenResult.status === "OK") {
+              onTokenizedRef.current(tokenResult.token);
+            } else {
+              const msg = tokenResult.errors?.[0]?.message || "Bank authorization failed";
+              onErrorRef.current(msg);
+            }
+          });
+
           achRef.current = ach;
         }
         setReady(true);
@@ -118,29 +118,26 @@ export default function SquarePayment({
   const handlePay = useCallback(async () => {
     setProcessing(true);
     try {
-      let tokenResult: TokenResult | undefined;
-
       if (method === "credit_card" && cardRef.current) {
-        tokenResult = await cardRef.current.tokenize();
+        const tokenResult = await cardRef.current.tokenize();
+        if (tokenResult.status !== "OK") {
+          const msg = tokenResult.errors?.[0]?.message || "Card verification failed";
+          onError(msg);
+          setProcessing(false);
+          return;
+        }
+        onTokenized(tokenResult.token);
       } else if (method === "ach" && achRef.current) {
         const amountDollars = (totalCents / 100).toFixed(2);
-        tokenResult = await achRef.current.tokenize({
+        // This opens the Plaid modal — result comes back via ontokenization event
+        await achRef.current.tokenize({
           accountHolderName: holderName,
           intent: "CHARGE",
           amount: amountDollars,
           currency: "USD",
         });
+        // Don't setProcessing(false) here — the event listener handles it
       }
-
-      if (!tokenResult || tokenResult.status !== "OK") {
-        const errorMsg =
-          tokenResult?.errors?.[0]?.message || "Payment verification failed";
-        onError(errorMsg);
-        setProcessing(false);
-        return;
-      }
-
-      onTokenized(tokenResult.token);
     } catch (err) {
       onError(err instanceof Error ? err.message : "Payment failed");
       setProcessing(false);

@@ -112,10 +112,16 @@ export async function POST(req: NextRequest) {
       success: true,
       registrationId: registration.id,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Registration error:", error);
+    const detail = error instanceof Error ? error.message : "";
+    const isPaymentError = detail.includes("BAD_REQUEST") || detail.includes("INVALID_REQUEST");
     return NextResponse.json(
-      { error: "Payment failed. Please try again." },
+      {
+        error: isPaymentError
+          ? "Payment could not be processed. Please check your payment details and try again."
+          : "Registration failed. Please try again.",
+      },
       { status: 500 }
     );
   }

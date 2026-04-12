@@ -35,6 +35,14 @@ export async function processPayment(
   // Square expects amount in cents
   const amountCents = BigInt(Math.round(total * 100));
 
+  console.log("Processing payment:", {
+    method,
+    amountCents: amountCents.toString(),
+    sourceIdPrefix: sourceId.substring(0, 20) + "...",
+    locationId: LOCATION_ID,
+    environment: process.env.SQUARE_ENVIRONMENT,
+  });
+
   const response = await client.payments.create({
     sourceId,
     idempotencyKey: crypto.randomUUID(),
@@ -45,7 +53,6 @@ export async function processPayment(
     locationId: LOCATION_ID,
     buyerEmailAddress: buyerEmail,
     note: `Shobra Travel Agency — Trip Deposit ($${DEPOSIT_AMOUNT})`,
-    autocomplete: true,
   });
 
   return response.payment;
