@@ -192,7 +192,7 @@ export default function BookingForm({
         {STEPS.map((s, i) => (
           <div key={s.label} className="flex items-center flex-1 last:flex-none">
             <button
-              onClick={() => i < step && setStep(i)}
+              onClick={() => { if (i < step) { setStep(i); setError(""); } }}
               className={`flex items-center gap-2 transition-colors ${
                 i < step ? "cursor-pointer" : "cursor-default"
               }`}
@@ -480,7 +480,7 @@ export default function BookingForm({
           <div className="flex flex-col gap-2 mb-6">
             <button
               type="button"
-              onClick={() => update("paymentMethod", "ach")}
+              onClick={() => { update("paymentMethod", "ach"); setAuthorized(false); setError(""); }}
               className={`w-full text-left p-4 border-2 transition-all relative ${
                 form.paymentMethod === "ach"
                   ? "border-accent bg-green-50"
@@ -514,7 +514,7 @@ export default function BookingForm({
 
             <button
               type="button"
-              onClick={() => update("paymentMethod", "credit_card")}
+              onClick={() => { update("paymentMethod", "credit_card"); setAuthorized(false); setError(""); }}
               className={`w-full text-left p-4 border-2 transition-all ${
                 form.paymentMethod === "credit_card"
                   ? "border-accent bg-green-50"
@@ -589,6 +589,7 @@ export default function BookingForm({
 
           {authorized && (
             <SquarePayment
+              key={form.paymentMethod}
               method={form.paymentMethod as "credit_card" | "ach"}
               transactionId={tripDateId}
               holderName={form.fullName}
@@ -615,7 +616,7 @@ export default function BookingForm({
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-neutral-200">
           <button
             type="button"
-            onClick={() => (step === 0 ? onClose() : setStep((s) => s - 1))}
+            onClick={() => { setError(""); step === 0 ? onClose() : setStep((s) => s - 1); }}
             className="flex items-center gap-1 text-xs uppercase tracking-wider font-semibold text-neutral-500 hover:text-neutral-800 transition-colors"
           >
             <ChevronLeft size={14} />
@@ -623,7 +624,7 @@ export default function BookingForm({
           </button>
           <button
             type="button"
-            onClick={() => setStep((s) => s + 1)}
+            onClick={() => { setError(""); setStep((s) => s + 1); }}
             disabled={!canAdvance()}
             className="flex items-center gap-1 bg-primary hover:bg-primary-light text-white font-semibold px-6 py-2.5 uppercase tracking-wider text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >

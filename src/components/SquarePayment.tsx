@@ -95,6 +95,7 @@ export default function SquarePayment({
               onTokenizedRef.current(tokenResult.token);
             } else {
               const msg = tokenResult.errors?.[0]?.message || "Bank authorization failed";
+              setProcessing(false);
               onErrorRef.current(msg);
             }
           });

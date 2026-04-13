@@ -51,13 +51,41 @@ export default async function TripDetailPage({ params }: Props) {
                 </h1>
               )}
 
-              <div className="prose prose-neutral max-w-none">
-                <p className="text-lg leading-relaxed whitespace-pre-line">
-                  {trip.description}
-                </p>
-              </div>
+              {/* Embedded Itinerary PDF */}
+              {trip.pdfUrl ? (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold uppercase tracking-wider">
+                      Itinerary
+                    </h2>
+                    <a
+                      href={trip.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-accent hover:text-accent-dark uppercase tracking-wider font-semibold transition-colors"
+                    >
+                      <FileText size={14} />
+                      Download PDF
+                    </a>
+                  </div>
+                  <div className="border border-neutral-200 bg-neutral-50">
+                    <iframe
+                      src={`${trip.pdfUrl}#toolbar=0&navpanes=0`}
+                      className="w-full"
+                      style={{ height: "80vh", minHeight: "600px" }}
+                      title={`${trip.title} Itinerary`}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="prose prose-neutral max-w-none">
+                  <p className="text-lg leading-relaxed whitespace-pre-line">
+                    {trip.description}
+                  </p>
+                </div>
+              )}
 
-              {trip.inclusions && (
+              {!trip.pdfUrl && trip.inclusions && (
                 <div className="mt-10">
                   <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
                     Inclusions
@@ -68,7 +96,7 @@ export default async function TripDetailPage({ params }: Props) {
                 </div>
               )}
 
-              {trip.exclusions && (
+              {!trip.pdfUrl && trip.exclusions && (
                 <div className="mt-8">
                   <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
                     Exclusions
@@ -139,18 +167,6 @@ export default async function TripDetailPage({ params }: Props) {
                     </div>
                   )}
                 </div>
-
-                {trip.pdfUrl && (
-                  <a
-                    href={trip.pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full bg-neutral-200 hover:bg-neutral-300 text-neutral-800 font-semibold py-3 uppercase tracking-wider text-sm transition-colors mb-3"
-                  >
-                    <FileText size={16} />
-                    Download Itinerary PDF
-                  </a>
-                )}
 
                 <TripBooking tripSlug={trip.slug} dateCount={trip.dates.length} />
               </div>
