@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Calendar, Users, Star, ArrowRight, Quote } from "lucide-react";
+import { prisma } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 const pillars = [
   {
@@ -50,7 +53,12 @@ const testimonials = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featuredTrips = await prisma.trip.findMany({
+    where: { published: true, featured: true },
+    include: { dates: { orderBy: { departureDate: "asc" } } },
+    take: 3,
+  });
   return (
     <>
       {/* Hero */}
@@ -100,6 +108,75 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Trips */}
+      {featuredTrips.length > 0 && (
+        <section className="py-24 md:py-36 bg-green-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <p className="text-accent text-sm uppercase tracking-[0.3em] mb-3">
+                Explore
+              </p>
+              <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-wider">
+                Featured Trips
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredTrips.map((trip) => {
+                const nextDate = trip.dates.find(
+                  (d) => d.departureDate >= new Date()
+                );
+                return (
+                  <Link
+                    key={trip.id}
+                    href={`/trips/${trip.slug}`}
+                    className="group bg-white border border-neutral-200 hover:border-accent transition-colors overflow-hidden"
+                  >
+                    {trip.heroImage && (
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <Image
+                          src={trip.heroImage}
+                          alt={trip.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <p className="text-accent text-xs uppercase tracking-[0.2em] mb-2">
+                        {trip.destinations}
+                      </p>
+                      <h3 className="text-lg font-bold uppercase tracking-wider mb-3">
+                        {trip.title}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-neutral-500 mb-4">
+                        {nextDate && (
+                          <span className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            {nextDate.departureDate.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                        )}
+                        <span className="font-semibold text-primary">
+                          ${trip.pricePerPerson.toLocaleString()}
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center gap-2 text-accent text-sm font-semibold uppercase tracking-wider group-hover:gap-3 transition-all">
+                        View Trip
+                        <ArrowRight size={14} />
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Pillars — editorial numbered list */}
       <section className="py-24 md:py-36">

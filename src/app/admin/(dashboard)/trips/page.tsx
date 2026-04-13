@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { Plus, Pencil, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Eye, EyeOff, Users } from "lucide-react";
+import DeleteTripButton from "./DeleteTripButton";
 
 export default async function AdminTripsPage() {
   const trips = await prisma.trip.findMany({
@@ -75,12 +76,21 @@ export default async function AdminTripsPage() {
                     )}
                   </td>
                   <td className="px-6 py-3">
-                    <Link
-                      href={`/admin/trips/${trip.id}/edit`}
-                      className="flex items-center gap-1 text-accent hover:underline"
-                    >
-                      <Pencil size={14} /> Edit
-                    </Link>
+                    <div className="flex items-center gap-4">
+                      <Link
+                        href={`/admin/trips/${trip.id}/edit`}
+                        className="flex items-center gap-1 text-accent hover:underline"
+                      >
+                        <Pencil size={14} /> Edit
+                      </Link>
+                      <Link
+                        href={`/admin/trips/${trip.id}/clients`}
+                        className="flex items-center gap-1 text-blue-600 hover:underline"
+                      >
+                        <Users size={14} /> Clients
+                      </Link>
+                      <DeleteTripButton tripId={trip.id} />
+                    </div>
                   </td>
                 </tr>
               ))}
