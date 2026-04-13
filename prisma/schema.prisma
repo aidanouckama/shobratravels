@@ -38,6 +38,7 @@ model Trip {
   pdfUrl        String?
   published     Boolean        @default(false)
   featured      Boolean        @default(false)
+  archived      Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   dates         TripDate[]

@@ -1,16 +1,95 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { Plus, Pencil, Eye, EyeOff, Users } from "lucide-react";
-import DeleteTripButton from "./DeleteTripButton";
+import { Plus, Pencil, Eye, EyeOff, Users, Archive } from "lucide-react";
+import ArchiveTripButton from "./ArchiveTripButton";
 
 export default async function AdminTripsPage() {
-  const trips = await prisma.trip.findMany({
+  const activeTrips = await prisma.trip.findMany({
+    where: { archived: false },
     orderBy: { createdAt: "desc" },
     include: {
       dates: { orderBy: { departureDate: "asc" }, take: 1 },
       _count: { select: { registrations: true } },
     },
   });
+
+  const archivedTrips = await prisma.trip.findMany({
+    where: { archived: true },
+    orderBy: { createdAt: "desc" },
+    include: {
+      dates: { orderBy: { departureDate: "asc" }, take: 1 },
+      _count: { select: { registrations: true } },
+    },
+  });
+
+  const renderTable = (
+    trips: typeof activeTrips,
+    showArchive: boolean
+  ) => (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="border-b border-neutral-200 text-left text-neutral-500 uppercase tracking-wider">
+          <th className="px-6 py-3">Trip</th>
+          <th className="px-6 py-3">Departure</th>
+          <th className="px-6 py-3">Price</th>
+          <th className="px-6 py-3">Registrations</th>
+          <th className="px-6 py-3">Status</th>
+          <th className="px-6 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {trips.map((trip) => (
+          <tr key={trip.id} className="border-b border-neutral-100">
+            <td className="px-6 py-3">
+              <p className="font-medium">{trip.title}</p>
+              <p className="text-neutral-500 text-xs">{trip.destinations}</p>
+            </td>
+            <td className="px-6 py-3">
+              {trip.dates[0]
+                ? trip.dates[0].departureDate.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "No dates"}
+            </td>
+            <td className="px-6 py-3">
+              ${trip.pricePerPerson.toLocaleString()}
+            </td>
+            <td className="px-6 py-3">{trip._count.registrations}</td>
+            <td className="px-6 py-3">
+              {trip.published ? (
+                <span className="flex items-center gap-1 text-green-600">
+                  <Eye size={14} /> Published
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-neutral-400">
+                  <EyeOff size={14} /> Draft
+                </span>
+              )}
+            </td>
+            <td className="px-6 py-3">
+              <div className="flex items-center gap-4">
+                <Link
+                  href={`/admin/trips/${trip.id}/edit`}
+                  className="flex items-center gap-1 text-accent hover:underline"
+                >
+                  <Pencil size={14} /> Edit
+                </Link>
+                <Link
+                  href={`/admin/trips/${trip.id}/clients`}
+                  className="flex items-center gap-1 text-blue-600 hover:underline"
+                >
+                  <Users size={14} /> Clients
+                </Link>
+                <ArchiveTripButton tripId={trip.id} archived={trip.archived} />
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 
   return (
     <div>
@@ -26,78 +105,26 @@ export default async function AdminTripsPage() {
       </div>
 
       <div className="bg-white border border-neutral-200">
-        {trips.length === 0 ? (
+        {activeTrips.length === 0 ? (
           <p className="p-6 text-neutral-500">
-            No trips yet. Create your first one!
+            No active trips. Create your first one!
           </p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-neutral-200 text-left text-neutral-500 uppercase tracking-wider">
-                <th className="px-6 py-3">Trip</th>
-                <th className="px-6 py-3">Departure</th>
-                <th className="px-6 py-3">Price</th>
-                <th className="px-6 py-3">Registrations</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trips.map((trip) => (
-                <tr key={trip.id} className="border-b border-neutral-100">
-                  <td className="px-6 py-3">
-                    <p className="font-medium">{trip.title}</p>
-                    <p className="text-neutral-500 text-xs">
-                      {trip.destinations}
-                    </p>
-                  </td>
-                  <td className="px-6 py-3">
-                    {trip.dates[0]
-                      ? trip.dates[0].departureDate.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "No dates"}
-                  </td>
-                  <td className="px-6 py-3">
-                    ${trip.pricePerPerson.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-3">{trip._count.registrations}</td>
-                  <td className="px-6 py-3">
-                    {trip.published ? (
-                      <span className="flex items-center gap-1 text-green-600">
-                        <Eye size={14} /> Published
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-neutral-400">
-                        <EyeOff size={14} /> Draft
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-4">
-                      <Link
-                        href={`/admin/trips/${trip.id}/edit`}
-                        className="flex items-center gap-1 text-accent hover:underline"
-                      >
-                        <Pencil size={14} /> Edit
-                      </Link>
-                      <Link
-                        href={`/admin/trips/${trip.id}/clients`}
-                        className="flex items-center gap-1 text-blue-600 hover:underline"
-                      >
-                        <Users size={14} /> Clients
-                      </Link>
-                      <DeleteTripButton tripId={trip.id} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          renderTable(activeTrips, true)
         )}
       </div>
+
+      {archivedTrips.length > 0 && (
+        <div className="mt-10">
+          <h2 className="flex items-center gap-2 text-lg font-bold uppercase tracking-wider mb-4 text-neutral-400">
+            <Archive size={18} />
+            Archived
+          </h2>
+          <div className="bg-white border border-neutral-200 opacity-75">
+            {renderTable(archivedTrips, false)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

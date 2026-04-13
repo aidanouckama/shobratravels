@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TripDetailPage({ params }: Props) {
   const { slug } = await params;
   const trip = await prisma.trip.findUnique({
-    where: { slug, published: true },
+    where: { slug, published: true, archived: false },
     include: { dates: { orderBy: { departureDate: "asc" } } },
   });
 
@@ -137,13 +137,6 @@ export default async function TripDetailPage({ params }: Props) {
                 <p className="text-accent text-xs font-medium mb-6">
                   $1,200 deposit &middot; balance due 90 days before travel
                 </p>
-
-                {trip.singleSupplement && (
-                  <p className="text-sm text-neutral-500 mb-6">
-                    Single supplement: +$
-                    {trip.singleSupplement.toLocaleString()}
-                  </p>
-                )}
 
                 <div className="flex flex-col gap-3 text-sm mb-8">
                   <DatesDropdown

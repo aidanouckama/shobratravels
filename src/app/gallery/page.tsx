@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default async function GalleryPage() {
   const trips = await prisma.trip.findMany({
-    where: { published: true, galleryImages: { isEmpty: false } },
+    where: { published: true, archived: false, galleryImages: { isEmpty: false } },
     select: { title: true, galleryImages: true, slug: true },
     orderBy: { createdAt: "desc" },
   });

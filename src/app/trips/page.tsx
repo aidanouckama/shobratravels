@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function TripsPage() {
   const trips = await prisma.trip.findMany({
-    where: { published: true },
+    where: { published: true, archived: false },
     include: {
       dates: { orderBy: { departureDate: "asc" } },
     },

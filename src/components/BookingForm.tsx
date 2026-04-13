@@ -13,6 +13,7 @@ import {
   X as XIcon,
   Loader2,
   Lock,
+  Info,
 } from "lucide-react";
 import SquarePayment from "@/components/SquarePayment";
 
@@ -30,6 +31,7 @@ type Props = {
   tripDateId: string;
   tripTitle: string;
   tripPrice: number;
+  singleSupplement: number | null;
   departureDate: string;
   returnDate: string;
   onClose: () => void;
@@ -40,6 +42,7 @@ export default function BookingForm({
   tripDateId,
   tripTitle,
   tripPrice,
+  singleSupplement,
   departureDate,
   returnDate,
   onClose,
@@ -50,6 +53,7 @@ export default function BookingForm({
   const [error, setError] = useState("");
   const [authorized, setAuthorized] = useState(false);
   const [uploadingPassport, setUploadingPassport] = useState(false);
+  const [singleOccupancy, setSingleOccupancy] = useState(false);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -110,13 +114,15 @@ export default function BookingForm({
     return true;
   };
 
+  const supplementAmount = singleOccupancy && singleSupplement ? singleSupplement : 0;
+  const fullTripPrice = tripPrice + supplementAmount;
   const isCC = form.paymentMethod === "credit_card";
   const ccFee = Math.round(DEPOSIT * CC_FEE_RATE * 100) / 100;
   const totalAmount = isCC ? DEPOSIT + ccFee : DEPOSIT;
   const totalCents = Math.round(totalAmount * 100);
   const displayTotal = `$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
   const displayFee = isCC ? "3.9% processing fee" : "No processing fee";
-  const remaining = tripPrice - DEPOSIT;
+  const remaining = fullTripPrice - DEPOSIT;
   const departureDateObj = new Date(departureDate);
   const dueDate = new Date(departureDateObj);
   dueDate.setDate(dueDate.getDate() - 90); // 90 days before travel
@@ -311,6 +317,51 @@ export default function BookingForm({
                 className="w-full border-b-2 border-neutral-200 px-0 py-2 bg-transparent focus:outline-none focus:border-accent transition-colors"
               />
             </div>
+
+            {/* Occupancy */}
+            {singleSupplement && singleSupplement > 0 && (
+              <div className="mt-6 p-4 border-2 border-neutral-200 transition-all">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                        Room Occupancy
+                      </p>
+                      <div className="group relative">
+                        <Info size={13} className="text-neutral-400 cursor-help" />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-primary text-white text-[11px] leading-relaxed p-3 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                          Double occupancy means sharing a room with another traveler. Single occupancy gives you a private room for an additional fee.
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setSingleOccupancy(false)}
+                        className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider border-2 transition-all ${
+                          !singleOccupancy
+                            ? "border-accent bg-green-50 text-accent"
+                            : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                        }`}
+                      >
+                        Double
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSingleOccupancy(true)}
+                        className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider border-2 transition-all ${
+                          singleOccupancy
+                            ? "border-accent bg-green-50 text-accent"
+                            : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                        }`}
+                      >
+                        Single (+${singleSupplement.toLocaleString()})
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -548,6 +599,18 @@ export default function BookingForm({
 
           {/* Order Summary */}
           <div className="bg-green-50 border border-green-200 p-4 text-sm mb-5">
+            <div className="flex justify-between mb-1">
+              <span className="text-neutral-500">
+                Trip ({singleOccupancy ? "single" : "double"} occupancy)
+              </span>
+              <span>${fullTripPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+            </div>
+            {supplementAmount > 0 && (
+              <div className="flex justify-between mb-1 text-xs text-neutral-400">
+                <span>Includes single supplement</span>
+                <span>+${supplementAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
             <div className="flex justify-between mb-1">
               <span className="text-neutral-500">Deposit</span>
               <span>$1,200.00</span>

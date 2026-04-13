@@ -12,6 +12,27 @@ export default function DatesDropdown({ dates }: Props) {
 
   if (dates.length === 0) return null;
 
+  if (dates.length === 1) {
+    const d = dates[0];
+    return (
+      <div className="flex items-center gap-2 text-neutral-600 text-sm">
+        <Calendar size={16} className="shrink-0" />
+        <span>
+          {new Date(d.departureDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+          })}{" "}
+          –{" "}
+          {new Date(d.returnDate).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div>
       <button
@@ -20,7 +41,7 @@ export default function DatesDropdown({ dates }: Props) {
       >
         <Calendar size={16} className="shrink-0" />
         <span>
-          {dates.length} {dates.length === 1 ? "date" : "dates"} available
+          {dates.length} dates available
         </span>
         <ChevronDown
           size={14}

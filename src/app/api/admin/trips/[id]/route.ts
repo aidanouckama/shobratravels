@@ -46,6 +46,21 @@ export async function PUT(req: NextRequest, context: Context) {
   return NextResponse.json(trip);
 }
 
+export async function PATCH(req: NextRequest, context: Context) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await context.params;
+  const body = await req.json();
+
+  const trip = await prisma.trip.update({
+    where: { id },
+    data: { archived: body.archived },
+  });
+
+  return NextResponse.json(trip);
+}
+
 export async function DELETE(_req: NextRequest, context: Context) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

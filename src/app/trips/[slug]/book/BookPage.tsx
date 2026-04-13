@@ -16,6 +16,7 @@ type Trip = {
   title: string;
   slug: string;
   pricePerPerson: number;
+  singleSupplement: number | null;
   duration: string;
   destinations: string;
   dates: TripDate[];
@@ -121,6 +122,7 @@ export default function BookPage({ trip }: { trip: Trip }) {
                   tripDateId={selectedDateId}
                   tripTitle={trip.title}
                   tripPrice={trip.pricePerPerson}
+                  singleSupplement={trip.singleSupplement}
                   departureDate={selectedDate!.departureDate}
                   returnDate={selectedDate!.returnDate}
                   onClose={() => setSelectedDateId("")}

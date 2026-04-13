@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TripBookPage({ params }: Props) {
   const { slug } = await params;
   const trip = await prisma.trip.findUnique({
-    where: { slug, published: true },
+    where: { slug, published: true, archived: false },
     include: { dates: { orderBy: { departureDate: "asc" } } },
   });
 
@@ -29,6 +29,7 @@ export default async function TripBookPage({ params }: Props) {
     title: trip.title,
     slug: trip.slug,
     pricePerPerson: trip.pricePerPerson,
+    singleSupplement: trip.singleSupplement,
     duration: trip.duration,
     destinations: trip.destinations,
     dates: trip.dates.map((d) => ({

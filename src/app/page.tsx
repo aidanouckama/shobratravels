@@ -55,7 +55,7 @@ const testimonials = [
 
 export default async function HomePage() {
   const featuredTrips = await prisma.trip.findMany({
-    where: { published: true, featured: true },
+    where: { published: true, featured: true, archived: false },
     include: { dates: { orderBy: { departureDate: "asc" } } },
     take: 3,
   });
