@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Calendar, Users, MapPin, Clock, FileText } from "lucide-react";
+import { Calendar, Users, MapPin, Clock, FileText, Check } from "lucide-react";
 import { prisma } from "@/lib/db";
 import type { Metadata } from "next";
 import TripBooking from "./TripBooking";
@@ -85,28 +85,6 @@ export default async function TripDetailPage({ params }: Props) {
                 </div>
               )}
 
-              {!trip.pdfUrl && trip.inclusions && (
-                <div className="mt-10">
-                  <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
-                    Inclusions
-                  </h2>
-                  <p className="text-neutral-600 whitespace-pre-line">
-                    {trip.inclusions}
-                  </p>
-                </div>
-              )}
-
-              {!trip.pdfUrl && trip.exclusions && (
-                <div className="mt-8">
-                  <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
-                    Exclusions
-                  </h2>
-                  <p className="text-neutral-600 whitespace-pre-line">
-                    {trip.exclusions}
-                  </p>
-                </div>
-              )}
-
               {trip.galleryImages.length > 0 && (
                 <div className="mt-10">
                   <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
@@ -162,6 +140,26 @@ export default async function TripDetailPage({ params }: Props) {
                 </div>
 
                 <TripBooking tripSlug={trip.slug} dateCount={trip.dates.length} />
+
+                <div className="mt-6 pt-6 border-t border-green-200">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-3">
+                    What&apos;s Included
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {[
+                      "Private guided tours",
+                      "Accommodations included",
+                      "Select meals provided",
+                      "Small group experience",
+                      "24/7 travel support",
+                    ].map((benefit) => (
+                      <div key={benefit} className="flex items-center gap-2 text-sm text-neutral-600">
+                        <Check size={14} className="text-accent shrink-0" />
+                        <span>{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

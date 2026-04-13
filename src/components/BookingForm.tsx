@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  User,
+  ClipboardList,
   BookOpen,
   CreditCard,
   Check,
@@ -21,7 +21,7 @@ const DEPOSIT = 1200;
 const CC_FEE_RATE = 0.039;
 
 const STEPS = [
-  { label: "Personal", icon: User },
+  { label: "Booking", icon: ClipboardList },
   { label: "Passport", icon: BookOpen },
   { label: "Payment", icon: CreditCard },
 ];
@@ -243,10 +243,10 @@ export default function BookingForm({
       {step === 0 && (
         <div>
           <h3 className="text-lg font-bold uppercase tracking-wider mb-1">
-            Your Details
+            Booking Details
           </h3>
           <p className="text-neutral-500 text-xs mb-6">
-            Tell us who&apos;s traveling.
+            Your information and trip preferences.
           </p>
           <div className="flex flex-col gap-4">
             <div>
