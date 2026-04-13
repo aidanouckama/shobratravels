@@ -89,8 +89,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-green-700 mt-12 pt-8 text-center text-sm text-green-200/50">
-          &copy; {new Date().getFullYear()} Shobra Travel Agency, LLC. All
-          rights reserved.
+          &copy; 2026 Shobra Travel Agency, LLC. All rights reserved.
         </div>
       </div>
     </footer>
