@@ -3,6 +3,7 @@ import { Calendar, Users, MapPin, Clock, FileText } from "lucide-react";
 import { prisma } from "@/lib/db";
 import type { Metadata } from "next";
 import TripBooking from "./TripBooking";
+import DatesDropdown from "./DatesDropdown";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -117,15 +118,12 @@ export default async function TripDetailPage({ params }: Props) {
                 )}
 
                 <div className="flex flex-col gap-3 text-sm mb-8">
-                  {trip.dates.length > 0 && (
-                    <div className="flex items-center gap-2 text-neutral-600">
-                      <Calendar size={16} />
-                      <span>
-                        {trip.dates.length}{" "}
-                        {trip.dates.length === 1 ? "date" : "dates"} available
-                      </span>
-                    </div>
-                  )}
+                  <DatesDropdown
+                    dates={trip.dates.map((d) => ({
+                      departureDate: d.departureDate.toISOString(),
+                      returnDate: d.returnDate.toISOString(),
+                    }))}
+                  />
                   <div className="flex items-center gap-2 text-neutral-600">
                     <Clock size={16} />
                     <span>{trip.duration}</span>
