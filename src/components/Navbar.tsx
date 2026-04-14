@@ -28,11 +28,11 @@ export default function Navbar() {
               height={44}
               className="brightness-0 invert"
             />
-            <div className="flex flex-col">
-              <span className="text-lg md:text-xl font-bold tracking-wide uppercase">
+            <div className="flex flex-col min-w-0">
+              <span className="text-base sm:text-lg md:text-xl font-bold tracking-wide uppercase">
                 Shobra Travel Agency
               </span>
-              <span className="text-xs tracking-widest text-green-300 uppercase">
+              <span className="hidden sm:block text-xs tracking-widest text-green-300 uppercase">
                 Cultural Historical Boutique Tours
               </span>
             </div>

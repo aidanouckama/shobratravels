@@ -75,7 +75,7 @@ export default async function HomePage() {
           <p className="text-accent-light text-sm uppercase tracking-[0.3em] mb-6">
             Cultural &bull; Historical &bull; Boutique
           </p>
-          <h1 className="text-5xl md:text-7xl font-bold uppercase tracking-wider mb-8 leading-[1.1]">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold uppercase tracking-wider mb-8 leading-[1.1]">
             Discover the
             <br />
             World&apos;s Most
@@ -221,7 +221,7 @@ export default async function HomePage() {
             <p className="text-accent-light text-sm uppercase tracking-[0.3em] mb-3">
               Limited Spots
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold uppercase tracking-wider mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wider mb-4">
               Ready for Your Next Adventure?
             </h2>
             <p className="text-green-200/60 leading-relaxed">
