@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Calendar, Users, MapPin, Clock, FileText, Check } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { formatGroupSize } from "@/lib/trip";
 import type { Metadata } from "next";
 import TripBooking from "./TripBooking";
 import DatesDropdown from "./DatesDropdown";
@@ -131,10 +132,10 @@ export default async function TripDetailPage({ params }: Props) {
                     <MapPin size={16} />
                     <span>{trip.destinations}</span>
                   </div>
-                  {trip.groupSize && (
+                  {formatGroupSize(trip.groupSizeMin, trip.groupSizeMax) && (
                     <div className="flex items-center gap-2 text-neutral-600">
                       <Users size={16} />
-                      <span>{trip.groupSize}</span>
+                      <span>{formatGroupSize(trip.groupSizeMin, trip.groupSizeMax)}</span>
                     </div>
                   )}
                 </div>

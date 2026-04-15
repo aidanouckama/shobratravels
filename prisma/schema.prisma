@@ -28,7 +28,8 @@ model Trip {
   description   String
   destinations  String
   duration      String
-  groupSize     String?
+  groupSizeMin  Int?
+  groupSizeMax  Int?
   pricePerPerson Float
   singleSupplement Float?
   inclusions    String?

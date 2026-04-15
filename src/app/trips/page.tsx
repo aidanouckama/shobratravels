@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, Users, MapPin } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { formatGroupSize } from "@/lib/trip";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -79,10 +80,10 @@ export default async function TripsPage() {
                           <MapPin size={14} />
                           {trip.destinations}
                         </span>
-                        {trip.groupSize && (
+                        {formatGroupSize(trip.groupSizeMin, trip.groupSizeMax) && (
                           <span className="flex items-center gap-1">
                             <Users size={14} />
-                            {trip.groupSize}
+                            {formatGroupSize(trip.groupSizeMin, trip.groupSizeMax)}
                           </span>
                         )}
                       </div>

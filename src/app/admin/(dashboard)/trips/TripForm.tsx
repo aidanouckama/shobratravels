@@ -17,7 +17,8 @@ type TripData = {
   destinations: string;
   duration: string;
   dates: TripDateEntry[];
-  groupSize: string;
+  groupSizeMin: number;
+  groupSizeMax: number;
   pricePerPerson: number;
   singleSupplement: number;
   inclusions: string;
@@ -35,7 +36,8 @@ const emptyTrip: TripData = {
   destinations: "",
   duration: "",
   dates: [{ departureDate: "", returnDate: "" }],
-  groupSize: "",
+  groupSizeMin: 0,
+  groupSizeMax: 0,
   pricePerPerson: 0,
   singleSupplement: 0,
   inclusions: "",
@@ -229,13 +231,24 @@ export default function TripForm({ trip }: { trip?: TripData }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Group Size</label>
-          <input
-            type="text"
-            placeholder="25-30 passengers"
-            value={form.groupSize}
-            onChange={(e) => update("groupSize", e.target.value)}
-            className="w-full border border-neutral-300 px-4 py-2.5 focus:outline-none focus:border-accent"
-          />
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              min={0}
+              placeholder="Min"
+              value={form.groupSizeMin || ""}
+              onChange={(e) => update("groupSizeMin", parseInt(e.target.value) || 0)}
+              className="w-full border border-neutral-300 px-4 py-2.5 focus:outline-none focus:border-accent"
+            />
+            <input
+              type="number"
+              min={0}
+              placeholder="Max"
+              value={form.groupSizeMax || ""}
+              onChange={(e) => update("groupSizeMax", parseInt(e.target.value) || 0)}
+              className="w-full border border-neutral-300 px-4 py-2.5 focus:outline-none focus:border-accent"
+            />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">

@@ -10,7 +10,8 @@ type Extracted = {
   destinations: string;
   duration: string;
   dates: { departureDate: string; returnDate: string }[];
-  groupSize?: string;
+  groupSizeMin?: number;
+  groupSizeMax?: number;
   pricePerPerson: number;
   singleSupplement?: number;
   inclusions: string;
@@ -75,7 +76,8 @@ export default function NewTripFromPdfPage() {
         extracted.dates && extracted.dates.length > 0
           ? extracted.dates
           : [{ departureDate: "", returnDate: "" }],
-      groupSize: extracted.groupSize || "",
+      groupSizeMin: extracted.groupSizeMin || 0,
+      groupSizeMax: extracted.groupSizeMax || 0,
       pricePerPerson: extracted.pricePerPerson || 0,
       singleSupplement: extracted.singleSupplement || 0,
       inclusions: extracted.inclusions || "",
