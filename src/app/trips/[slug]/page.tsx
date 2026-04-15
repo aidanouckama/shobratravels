@@ -113,7 +113,7 @@ export default async function TripDetailPage({ params }: Props) {
                   per person (double occupancy)
                 </p>
                 <p className="text-accent text-xs font-medium mb-6">
-                  $1,200 deposit &middot; balance due 90 days before travel
+                  $1 deposit &middot; balance due 90 days before travel
                 </p>
 
                 <div className="flex flex-col gap-3 text-sm mb-8">

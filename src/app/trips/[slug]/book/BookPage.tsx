@@ -166,13 +166,13 @@ export default function BookPage({ trip }: { trip: Trip }) {
                   </div>
                   <div className="flex justify-between font-bold text-accent">
                     <span>Deposit due today</span>
-                    <span>$1,200.00</span>
+                    <span>$1.00</span>
                   </div>
                   <div className="flex justify-between text-xs text-neutral-400">
                     <span>Remaining balance</span>
                     <span>
                       $
-                      {(trip.pricePerPerson - 1200).toLocaleString("en-US", {
+                      {(trip.pricePerPerson - 1).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                       })}
                     </span>
