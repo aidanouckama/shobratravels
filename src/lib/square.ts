@@ -10,7 +10,7 @@ const client = new SquareClient({
 });
 
 const LOCATION_ID = process.env.SQUARE_LOCATION_ID!;
-const DEPOSIT_AMOUNT = 1200; // $1,200 deposit
+const DEPOSIT_AMOUNT = 1; // TEMP: $1 for prod testing (restore to 1200 after)
 const CC_FEE_RATE = 0.039; // 3.9% — passed to customer
 const ACH_FEE_RATE = 0.01; // 1% — absorbed by business
 
