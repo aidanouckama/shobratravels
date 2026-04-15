@@ -19,11 +19,23 @@ export default async function TripBookPage({ params }: Props) {
   const { slug } = await params;
   const trip = await prisma.trip.findUnique({
     where: { slug, published: true, archived: false },
-    include: { dates: { orderBy: { departureDate: "asc" } } },
+    include: {
+      dates: {
+        orderBy: { departureDate: "asc" },
+        include: {
+          _count: {
+            select: {
+              registrations: { where: { status: { not: "CANCELLED" } } },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!trip) notFound();
 
+  const max = trip.groupSizeMax;
   const tripData = {
     id: trip.id,
     title: trip.title,
@@ -32,11 +44,18 @@ export default async function TripBookPage({ params }: Props) {
     singleSupplement: trip.singleSupplement,
     duration: trip.duration,
     destinations: trip.destinations,
-    dates: trip.dates.map((d) => ({
-      id: d.id,
-      departureDate: d.departureDate.toISOString(),
-      returnDate: d.returnDate.toISOString(),
-    })),
+    groupSizeMax: max,
+    dates: trip.dates.map((d) => {
+      const booked = d._count.registrations;
+      const spotsLeft = max ? Math.max(0, max - booked) : null;
+      return {
+        id: d.id,
+        departureDate: d.departureDate.toISOString(),
+        returnDate: d.returnDate.toISOString(),
+        spotsLeft,
+        soldOut: max !== null && booked >= max,
+      };
+    }),
   };
 
   return <BookPage trip={tripData} />;

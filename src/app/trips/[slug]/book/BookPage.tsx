@@ -9,6 +9,8 @@ type TripDate = {
   id: string;
   departureDate: string;
   returnDate: string;
+  spotsLeft: number | null;
+  soldOut: boolean;
 };
 
 type Trip = {
@@ -19,6 +21,7 @@ type Trip = {
   singleSupplement: number | null;
   duration: string;
   destinations: string;
+  groupSizeMax: number | null;
   dates: TripDate[];
 };
 
@@ -76,44 +79,58 @@ export default function BookPage({ trip }: { trip: Trip }) {
                     Choose your preferred travel dates to continue.
                   </p>
                   <div className="flex flex-col gap-3">
-                    {trip.dates.map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => setSelectedDateId(d.id)}
-                        className="w-full text-left p-5 border-2 border-neutral-200 hover:border-accent transition-all"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-green-50 flex items-center justify-center shrink-0">
-                            <Calendar size={20} className="text-accent" />
+                    {trip.dates.map((d) => {
+                      const tight = d.spotsLeft !== null && d.spotsLeft > 0 && d.spotsLeft <= 3;
+                      return (
+                        <button
+                          key={d.id}
+                          type="button"
+                          disabled={d.soldOut}
+                          onClick={() => !d.soldOut && setSelectedDateId(d.id)}
+                          className={`w-full text-left p-5 border-2 transition-all ${
+                            d.soldOut
+                              ? "border-neutral-200 bg-neutral-50 opacity-60 cursor-not-allowed"
+                              : "border-neutral-200 hover:border-accent"
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-green-50 flex items-center justify-center shrink-0">
+                              <Calendar size={20} className="text-accent" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-bold text-sm">
+                                {new Date(d.departureDate).toLocaleDateString(
+                                  "en-US",
+                                  { month: "long", day: "numeric", year: "numeric" }
+                                )}{" "}
+                                –{" "}
+                                {new Date(d.returnDate).toLocaleDateString(
+                                  "en-US",
+                                  { month: "long", day: "numeric", year: "numeric" }
+                                )}
+                              </p>
+                              <p className="text-neutral-500 text-xs mt-1">
+                                {trip.duration}
+                              </p>
+                            </div>
+                            {d.soldOut ? (
+                              <span className="bg-neutral-800 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 shrink-0">
+                                Full
+                              </span>
+                            ) : tight ? (
+                              <span className="bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 shrink-0">
+                                {d.spotsLeft} left
+                              </span>
+                            ) : null}
                           </div>
-                          <div>
-                            <p className="font-bold text-sm">
-                              {new Date(d.departureDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "long",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )}{" "}
-                              –{" "}
-                              {new Date(d.returnDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "long",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )}
-                            </p>
-                            <p className="text-neutral-500 text-xs mt-1">
-                              {trip.duration}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
+                    {trip.dates.every((d) => d.soldOut) && (
+                      <p className="text-center text-neutral-500 text-sm pt-4">
+                        All dates are currently full. Contact us to join the waitlist.
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (

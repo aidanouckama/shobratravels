@@ -69,6 +69,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (trip.groupSizeMax) {
+      const booked = await prisma.registration.count({
+        where: { tripDateId, status: { not: "CANCELLED" } },
+      });
+      if (booked >= trip.groupSizeMax) {
+        return NextResponse.json(
+          { error: "This trip date is full. Please choose another date." },
+          { status: 409 },
+        );
+      }
+    }
+
     // Process deposit payment FIRST — if this fails, no registration is created
     const { base, fee, total } = calculateDeposit(paymentMethod);
     const amountCents = Math.round(total * 100);

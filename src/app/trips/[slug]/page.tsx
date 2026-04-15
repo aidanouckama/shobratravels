@@ -19,10 +19,27 @@ export default async function TripDetailPage({ params }: Props) {
   const { slug } = await params;
   const trip = await prisma.trip.findUnique({
     where: { slug, published: true, archived: false },
-    include: { dates: { orderBy: { departureDate: "asc" } } },
+    include: {
+      dates: {
+        orderBy: { departureDate: "asc" },
+        include: {
+          _count: {
+            select: {
+              registrations: { where: { status: { not: "CANCELLED" } } },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!trip) notFound();
+
+  const max = trip.groupSizeMax;
+  const availableDateCount = trip.dates.filter(
+    (d) => !max || d._count.registrations < max,
+  ).length;
+  const allFull = trip.dates.length > 0 && availableDateCount === 0;
 
   return (
     <>
@@ -122,6 +139,7 @@ export default async function TripDetailPage({ params }: Props) {
                     dates={trip.dates.map((d) => ({
                       departureDate: d.departureDate.toISOString(),
                       returnDate: d.returnDate.toISOString(),
+                      soldOut: !!max && d._count.registrations >= max,
                     }))}
                   />
                   <div className="flex items-center gap-2 text-neutral-600">
@@ -140,7 +158,11 @@ export default async function TripDetailPage({ params }: Props) {
                   )}
                 </div>
 
-                <TripBooking tripSlug={trip.slug} dateCount={trip.dates.length} />
+                <TripBooking
+                  tripSlug={trip.slug}
+                  dateCount={availableDateCount}
+                  allFull={allFull}
+                />
 
                 <div className="mt-6 pt-6 border-t border-green-200">
                   <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500 mb-3">
