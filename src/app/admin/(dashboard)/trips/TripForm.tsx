@@ -352,7 +352,7 @@ export default function TripForm({ trip }: { trip?: TripData }) {
         <button
           type="button"
           onClick={() => router.push("/admin/trips")}
-          className="border border-neutral-300 px-8 py-3 uppercase tracking-wider text-sm hover:bg-neutral-100 transition-colors"
+          className="border border-neutral-300 px-8 py-3 uppercase tracking-wider text-sm bg-white hover:bg-neutral-200 hover:border-neutral-500 transition-colors"
         >
           Cancel
         </button>
