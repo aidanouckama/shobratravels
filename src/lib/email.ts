@@ -33,7 +33,7 @@ export async function notifyNewRegistration(data: {
         <tr><td style="padding:6px 12px;font-weight:bold;">Trip</td><td style="padding:6px 12px;">${data.tripTitle}</td></tr>
         <tr><td style="padding:6px 12px;font-weight:bold;">Departure</td><td style="padding:6px 12px;">${data.departureDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</td></tr>
         <tr><td style="padding:6px 12px;font-weight:bold;">Payment</td><td style="padding:6px 12px;">${methodLabel}</td></tr>
-        <tr><td style="padding:6px 12px;font-weight:bold;">Deposit</td><td style="padding:6px 12px;">$1.00</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:bold;">Deposit</td><td style="padding:6px 12px;">$1,200.00</td></tr>
       </table>
       <p style="margin-top:16px;color:#666;">View details in the <a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin">admin dashboard</a>.</p>
     `,

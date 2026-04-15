@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import SquarePayment from "@/components/SquarePayment";
 
-const DEPOSIT = 1; // TEMP: $1 for prod testing (restore to 1200 after)
+const DEPOSIT = 1200;
 const CC_FEE_RATE = 0.039;
 
 const STEPS = [
@@ -518,7 +518,7 @@ export default function BookingForm({
             Payment
           </h3>
           <p className="text-neutral-500 text-xs mb-6">
-            $1 deposit today. Remaining ${remaining.toLocaleString("en-US", { minimumFractionDigits: 2 })}{" "}
+            $1,200 deposit today. Remaining ${remaining.toLocaleString("en-US", { minimumFractionDigits: 2 })}{" "}
             due by{" "}
             {dueDate.toLocaleDateString("en-US", {
               month: "long",
@@ -557,7 +557,7 @@ export default function BookingForm({
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-bold text-sm">$1.00</p>
+                  <p className="font-bold text-sm">$1,200.00</p>
                   <p className="text-accent text-[10px] font-semibold">No fee</p>
                 </div>
               </div>
@@ -613,7 +613,7 @@ export default function BookingForm({
             )}
             <div className="flex justify-between mb-1">
               <span className="text-neutral-500">Deposit</span>
-              <span>$1.00</span>
+              <span>$1,200.00</span>
             </div>
             {isCC && (
               <div className="flex justify-between mb-1">
