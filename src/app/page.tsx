@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Calendar, Users, Star, ArrowRight, Quote } from "lucide-react";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  other: {
+    "websitelaunches-verification": "dd527da1e9f0356cbefda8a7b769a347",
+  },
+};
 
 const pillars = [
   {
