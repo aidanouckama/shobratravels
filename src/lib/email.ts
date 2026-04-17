@@ -510,8 +510,12 @@ export async function sendBalanceDueReminder(data: {
   departureDate: Date;
   returnDate: Date;
   balanceDue: number;
-  daysUntilDeparture: number;
+  paymentDueDate: Date;
+  daysUntilDue: number;
 }) {
+  const daysLabel =
+    data.daysUntilDue === 1 ? "1 day" : `${data.daysUntilDue} days`;
+
   const bodyHtml = `
     <div style="background:#ffffff;border:1px solid ${BRAND.divider};border-top:4px solid ${BRAND.green600};padding:20px 22px;">
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${BRAND.muted};font-weight:700;">Balance due</div>
@@ -520,9 +524,14 @@ export async function sendBalanceDueReminder(data: {
         ${data.tripTitle}<br>
         <span style="color:${BRAND.muted};">Departs ${fmtDate(data.departureDate)} &middot; Returns ${fmtDate(data.returnDate)}</span>
       </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid ${BRAND.divider};">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${BRAND.muted};font-weight:700;">Payment due by</div>
+        <div style="font-size:18px;font-weight:700;color:${BRAND.ink};margin-top:4px;">${fmtDate(data.paymentDueDate)}</div>
+        <div style="font-size:13px;color:${BRAND.muted};margin-top:2px;">That's ${daysLabel} from today.</div>
+      </div>
     </div>
     <p style="margin:18px 0 0;color:${BRAND.body};font-size:15px;line-height:1.6;">
-      Your departure is <strong>${data.daysUntilDeparture} days away</strong>. To secure your spot, the balance needs to be paid before we finalize arrangements.
+      We close out bookings three months before departure, so the final payment needs to land by <strong>${fmtDate(data.paymentDueDate)}</strong> to keep your spot on this trip.
     </p>
     <p style="margin:12px 0 0;color:${BRAND.body};font-size:15px;line-height:1.6;">
       Simply reply to this email and we'll send you a secure payment link (or provide ACH / check instructions, whichever works best for you).
@@ -533,12 +542,12 @@ export async function sendBalanceDueReminder(data: {
     from: FROM,
     to: data.clientEmail,
     replyTo: REPLY_TO,
-    subject: `Balance due for ${data.tripTitle}`,
+    subject: `Balance due ${fmtDate(data.paymentDueDate)} — ${data.tripTitle}`,
     html: brandedEmail({
-      preheader: `Your trip is ${data.daysUntilDeparture} days away — ${fmtMoney(data.balanceDue)} balance remaining.`,
+      preheader: `Final payment of ${fmtMoney(data.balanceDue)} due ${fmtDate(data.paymentDueDate)}.`,
       accentLabel: "Balance due reminder",
-      heading: `${data.clientName}, your trip is almost here`,
-      intro: `Just a friendly reminder that the balance for your upcoming trip is due.`,
+      heading: `${data.clientName}, your balance is due in ${daysLabel}`,
+      intro: `A friendly reminder that the final payment for your trip is due one week from today.`,
       bodyHtml,
       footerNote: `Questions about your balance or payment options? Reply to this email and we'll sort it out.`,
     }),

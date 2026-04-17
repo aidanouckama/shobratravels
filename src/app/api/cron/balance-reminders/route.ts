@@ -2,11 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendBalanceDueReminder } from "@/lib/email";
 
-// Fire reminders when a trip is ~30 days out (window: 28–32 days).
-const WINDOW_START_DAYS = 28;
-const WINDOW_END_DAYS = 32;
+// Shobra closes purchases 3 months before departure — that's the final
+// payment deadline. Fire a reminder 1 week before the deadline.
+const PAYMENT_DUE_MONTHS_BEFORE_DEPARTURE = 3;
+const REMINDER_DAYS_BEFORE_DUE = 7;
+// ±1 day window around the target, in case a cron run is skipped.
+const WINDOW_TOLERANCE_DAYS = 1;
 
 export const dynamic = "force-dynamic";
+
+function addMonths(date: Date, months: number): Date {
+  const out = new Date(date);
+  out.setMonth(out.getMonth() + months);
+  return out;
+}
+
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * 86_400_000);
+}
+
+function computePaymentDueDate(departureDate: Date): Date {
+  return addMonths(departureDate, -PAYMENT_DUE_MONTHS_BEFORE_DEPARTURE);
+}
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -16,8 +33,15 @@ export async function GET(req: NextRequest) {
   }
 
   const now = new Date();
-  const windowStart = new Date(now.getTime() + WINDOW_START_DAYS * 86_400_000);
-  const windowEnd = new Date(now.getTime() + WINDOW_END_DAYS * 86_400_000);
+
+  // Target: today should equal (departure − 3 months − 7 days).
+  // Equivalently: departure ∈ [today + 3mo + 6d, today + 3mo + 8d].
+  const targetDeparture = addDays(
+    addMonths(now, PAYMENT_DUE_MONTHS_BEFORE_DEPARTURE),
+    REMINDER_DAYS_BEFORE_DUE,
+  );
+  const windowStart = addDays(targetDeparture, -WINDOW_TOLERANCE_DAYS);
+  const windowEnd = addDays(targetDeparture, WINDOW_TOLERANCE_DAYS);
 
   const registrations = await prisma.registration.findMany({
     where: {
@@ -55,8 +79,9 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      const daysUntilDeparture = Math.round(
-        (reg.tripDate.departureDate.getTime() - now.getTime()) / 86_400_000,
+      const paymentDueDate = computePaymentDueDate(reg.tripDate.departureDate);
+      const daysUntilDue = Math.round(
+        (paymentDueDate.getTime() - now.getTime()) / 86_400_000,
       );
 
       await sendBalanceDueReminder({
@@ -66,7 +91,8 @@ export async function GET(req: NextRequest) {
         departureDate: reg.tripDate.departureDate,
         returnDate: reg.tripDate.returnDate,
         balanceDue,
-        daysUntilDeparture,
+        paymentDueDate,
+        daysUntilDue,
       });
 
       await prisma.registration.update({

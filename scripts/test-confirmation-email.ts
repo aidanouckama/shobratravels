@@ -102,6 +102,8 @@ async function main() {
   });
 
   console.log("9/10 sendBalanceDueReminder (client)...");
+  const paymentDueDate = new Date(departure);
+  paymentDueDate.setMonth(paymentDueDate.getMonth() - 3);
   await sendBalanceDueReminder({
     clientName: "Amira Shobra",
     clientEmail: TEST_TO,
@@ -109,7 +111,8 @@ async function main() {
     departureDate: departure,
     returnDate,
     balanceDue: 4800,
-    daysUntilDeparture: 30,
+    paymentDueDate,
+    daysUntilDue: 7,
   });
 
   console.log("10/10 sendFinalPaymentReceipt (client)...");
