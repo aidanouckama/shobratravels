@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ClipboardList,
   BookOpen,
@@ -18,6 +18,7 @@ import {
 import SquarePayment from "@/components/SquarePayment";
 import { COUNTRIES } from "@/lib/countries";
 import { formatPhoneInput, isValidPhone } from "@/lib/phone";
+import { track } from "@/lib/analytics";
 
 const DEPOSIT = 1200;
 const CC_FEE_RATE = 0.039;
@@ -75,6 +76,11 @@ export default function BookingForm({
   const update = (field: string, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
 
+  useEffect(() => {
+    track("registration_started", { trip_title: tripTitle, trip_id: tripId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleFullSubmit = async (sourceId: string) => {
     setSubmitting(true);
     setError("");
@@ -94,6 +100,15 @@ export default function BookingForm({
         throw new Error(data.error || "Registration failed");
       }
       setSubmitted(true);
+      const isCCPayment = form.paymentMethod === "credit_card";
+      const ccFeeAmount = Math.round(DEPOSIT * CC_FEE_RATE * 100) / 100;
+      track("registration_completed", {
+        trip_title: tripTitle,
+        trip_id: tripId,
+        payment_method: form.paymentMethod,
+        value: isCCPayment ? DEPOSIT + ccFeeAmount : DEPOSIT,
+        currency: "USD",
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

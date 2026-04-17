@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MapPin, Phone, Mail } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -21,6 +22,7 @@ export default function ContactPage() {
       });
       if (res.ok) {
         setSubmitted(true);
+        track("contact_submitted");
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || "Failed to send message. Please try again.");

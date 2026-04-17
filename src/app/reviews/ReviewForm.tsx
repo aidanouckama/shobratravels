@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Star, Check } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 export default function ReviewForm() {
   const [submitting, setSubmitting] = useState(false);
@@ -29,6 +30,7 @@ export default function ReviewForm() {
       });
       if (res.ok) {
         setSubmitted(true);
+        track("review_submitted", { rating });
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || "Failed to submit. Please try again.");

@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import {
   SITE_URL,
   travelAgencyLd,
@@ -11,6 +12,8 @@ import {
   jsonLdScript,
 } from "@/lib/jsonld";
 import "./globals.css";
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -115,6 +118,7 @@ export default function RootLayout({
         <Footer />
         <Analytics />
         <SpeedInsights />
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
       </body>
     </html>
   );
