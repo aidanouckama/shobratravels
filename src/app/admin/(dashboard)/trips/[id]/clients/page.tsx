@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ArrowLeft } from "lucide-react";
+import BalanceActions from "./BalanceActions";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,7 @@ export default async function TripClientsPage({
                 <th className="px-6 py-3">Passport</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Amount Paid</th>
+                <th className="px-6 py-3">Balance</th>
                 <th className="px-6 py-3">Registered</th>
               </tr>
             </thead>
@@ -132,6 +134,13 @@ export default async function TripClientsPage({
                     <td className="px-6 py-3">{statusBadge(reg.status)}</td>
                     <td className="px-6 py-3">
                       ${totalPaid.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-3">
+                      <BalanceActions
+                        registrationId={reg.id}
+                        initialLinkUrl={reg.balancePaymentLinkUrl}
+                        status={reg.status}
+                      />
                     </td>
                     <td className="px-6 py-3 text-neutral-500">
                       {reg.createdAt.toLocaleDateString("en-US", {
