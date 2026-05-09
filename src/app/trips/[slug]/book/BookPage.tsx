@@ -101,12 +101,12 @@ export default function BookPage({ trip }: { trip: Trip }) {
                               <p className="font-bold text-sm">
                                 {new Date(d.departureDate).toLocaleDateString(
                                   "en-US",
-                                  { month: "long", day: "numeric", year: "numeric" }
+                                  { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }
                                 )}{" "}
                                 –{" "}
                                 {new Date(d.returnDate).toLocaleDateString(
                                   "en-US",
-                                  { month: "long", day: "numeric", year: "numeric" }
+                                  { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }
                                 )}
                               </p>
                               <p className="text-neutral-500 text-xs mt-1">
@@ -162,7 +162,7 @@ export default function BookPage({ trip }: { trip: Trip }) {
                     <span>
                       {new Date(selectedDate.departureDate).toLocaleDateString(
                         "en-US",
-                        { month: "short", day: "numeric" }
+                        { month: "short", day: "numeric", timeZone: "UTC" }
                       )}{" "}
                       –{" "}
                       {new Date(selectedDate.returnDate).toLocaleDateString(
@@ -171,6 +171,7 @@ export default function BookPage({ trip }: { trip: Trip }) {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
+                          timeZone: "UTC",
                         }
                       )}
                     </span>
