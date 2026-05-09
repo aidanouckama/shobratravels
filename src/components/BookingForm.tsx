@@ -194,6 +194,7 @@ export default function BookingForm({
                 month: "long",
                 day: "numeric",
                 year: "numeric",
+                timeZone: "UTC",
               })}
             </span>
           </div>
@@ -213,12 +214,14 @@ export default function BookingForm({
           {new Date(departureDate).toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",
+            timeZone: "UTC",
           })}{" "}
           –{" "}
           {new Date(returnDate).toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",
             year: "numeric",
+            timeZone: "UTC",
           })}
         </p>
       </div>
@@ -587,6 +590,7 @@ export default function BookingForm({
               month: "long",
               day: "numeric",
               year: "numeric",
+              timeZone: "UTC",
             })}
             .
           </p>
@@ -692,7 +696,7 @@ export default function BookingForm({
               <span>Remaining balance</span>
               <span>
                 ${remaining.toLocaleString("en-US", { minimumFractionDigits: 2 })} due{" "}
-                {dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
               </span>
             </div>
           </div>
