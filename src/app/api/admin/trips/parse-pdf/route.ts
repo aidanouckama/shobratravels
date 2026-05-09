@@ -14,6 +14,7 @@ const TOOL = {
     type: "object" as const,
     properties: {
       title: { type: "string", description: "Short marketable title, e.g. 'China Highlights Tour'" },
+      slug: { type: "string", description: "URL slug derived from the title: lowercase, alphanumeric only, words separated by single hyphens, no leading/trailing hyphens. Strip all special characters (commas, em/en dashes, apostrophes, accents, etc). Examples: 'Croatia – Bosnia – Slovenia – Herzegovina' → 'croatia-bosnia-slovenia-herzegovina'; 'Bhutan – Nepal' → 'bhutan-nepal'; 'China' → 'china'." },
       description: { type: "string", description: "1-2 paragraph trip overview suitable for a public website. Summarize the experience, not the itinerary." },
       destinations: { type: "string", description: "Comma-separated primary destinations (cities/regions)." },
       duration: { type: "string", description: "Human-readable duration, e.g. '12 days'" },
@@ -36,7 +37,7 @@ const TOOL = {
       inclusions: { type: "string", description: "Newline-separated inclusions list." },
       exclusions: { type: "string", description: "Newline-separated exclusions list." },
     },
-    required: ["title", "description", "destinations", "duration", "dates", "pricePerPerson", "inclusions", "exclusions"],
+    required: ["title", "slug", "description", "destinations", "duration", "dates", "pricePerPerson", "inclusions", "exclusions"],
   },
 };
 

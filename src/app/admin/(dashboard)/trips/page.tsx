@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { Plus, Pencil, Eye, EyeOff, Users, Archive, Sparkles } from "lucide-react";
+import { Plus, Pencil, Eye, EyeOff, Users, Archive } from "lucide-react";
 import ArchiveTripButton from "./ArchiveTripButton";
 
 export default async function AdminTripsPage() {
@@ -95,22 +95,13 @@ export default async function AdminTripsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold uppercase tracking-wider">Trips</h1>
-        <div className="flex gap-3">
-          <Link
-            href="/admin/trips/new/from-pdf"
-            className="flex items-center gap-2 border border-accent text-accent hover:bg-accent hover:text-white font-semibold px-6 py-2.5 uppercase tracking-wider text-sm transition-colors"
-          >
-            <Sparkles size={16} />
-            Import PDF
-          </Link>
-          <Link
-            href="/admin/trips/new"
-            className="flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-2.5 uppercase tracking-wider text-sm transition-colors"
-          >
-            <Plus size={16} />
-            New Trip
-          </Link>
-        </div>
+        <Link
+          href="/admin/trips/new"
+          className="flex items-center gap-2 bg-accent hover:bg-accent-dark text-white font-semibold px-6 py-2.5 uppercase tracking-wider text-sm transition-colors"
+        >
+          <Plus size={16} />
+          New Trip
+        </Link>
       </div>
 
       <div className="bg-white border border-neutral-200">
