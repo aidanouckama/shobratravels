@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Calendar, Users, Star, ArrowRight, Quote } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { truncateDestinations } from "@/lib/trip";
 
 export const dynamic = "force-dynamic";
 
@@ -151,7 +152,7 @@ export default async function HomePage() {
                     )}
                     <div className="p-6">
                       <p className="text-accent text-xs uppercase tracking-[0.2em] mb-2">
-                        {trip.destinations}
+                        {truncateDestinations(trip.destinations)}
                       </p>
                       <h3 className="text-lg font-bold uppercase tracking-wider mb-3">
                         {trip.title}
