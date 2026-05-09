@@ -199,7 +199,7 @@ export default async function TripDetailPage({ params }: Props) {
                     <span>{trip.duration}</span>
                   </div>
                   <div className="flex items-center gap-2 text-neutral-600">
-                    <MapPin size={16} />
+                    <MapPin size={16} className="shrink-0" />
                     <span>{trip.destinations}</span>
                   </div>
                   {formatGroupSize(trip.groupSizeMin, trip.groupSizeMax) && (
